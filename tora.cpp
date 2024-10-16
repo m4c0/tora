@@ -24,6 +24,8 @@ public:
       default: silog::die("failed to step into query: %s", sqlite3_errmsg(m_db));
     }
   }
+
+  auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
 };
 
 class db {
@@ -54,7 +56,7 @@ int main() try {
 
   auto stmt = db.prepare("select 1 union select 2");
   while (stmt.step()) {
-    silog::trace("row", 0);
+    silog::trace("row", stmt.column_int(0));
   }
 } catch (...) {
   return 1;
