@@ -15,15 +15,23 @@ class stmt {
   sqlite3 * m_db {};
   hai::value_holder<sqlite3_stmt *, deleter> m_stmt {};
 
+  void check(int res, const char * msg) {
+    if (SQLITE_OK != res) silog::die("%s %s", msg, sqlite3_errmsg(m_db));
+  }
+
 public:
   explicit stmt(sqlite3 * db, sqlite3_stmt * s) : m_db { db }, m_stmt { s } {}
 
-  [[nodiscard]] bool step() {
+  bool step() {
     switch (sqlite3_step(*m_stmt)) {
       case SQLITE_DONE: return false;
       case SQLITE_ROW: return true;
       default: silog::die("failed to step into query: %s", sqlite3_errmsg(m_db));
     }
+  }
+
+  void bind(unsigned i, jute::view str) {
+    check(sqlite3_bind_text(*m_stmt, i, str.begin(), str.size(), SQLITE_TRANSIENT), "failed to bind parameter");
   }
 
   auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
@@ -81,10 +89,10 @@ int main(int argc, char ** argv) try {
         text         TEXT NOT NULL
       );
     )");
-    db.exec("INSERT INTO notification (text) VALUES ('a')");
-    db.exec("INSERT INTO notification (text) VALUES ('b')");
-    db.exec("INSERT INTO notification (text) VALUES ('c')");
-    db.exec("INSERT INTO notification (text) VALUES ('d')");
+  } else if (cmd == "add") {
+    auto stmt = db.prepare("INSERT INTO notification (text) VALUES (?)");
+    stmt.bind(1, args.take());
+    stmt.step();
   } else if (cmd == "list") {
     auto stmt = db.prepare("SELECT * FROM notification");
     while (stmt.step()) {
