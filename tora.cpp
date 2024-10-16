@@ -33,6 +33,9 @@ public:
   void bind(unsigned i, jute::view str) {
     check(sqlite3_bind_text(*m_stmt, i, str.begin(), str.size(), SQLITE_TRANSIENT), "failed to bind parameter");
   }
+  void bind(unsigned i, int n) {
+    check(sqlite3_bind_int(*m_stmt, i, n), "failed to bind parameter");
+  }
 
   auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
   auto column_text(unsigned i) { return sqlite3_column_text(*m_stmt, i); }
@@ -94,10 +97,14 @@ int main(int argc, char ** argv) try {
     stmt.bind(1, args.take());
     stmt.step();
   } else if (cmd == "list") {
-    auto stmt = db.prepare("SELECT * FROM notification");
+    auto stmt = db.prepare("SELECT * FROM notification WHERE dismissed_at IS NULL");
     while (stmt.step()) {
       silog::log(silog::info, "%d %s %s", stmt.column_int(0), stmt.column_text(1), stmt.column_text(3));
     }
+  } else if (cmd == "dismiss") {
+    auto stmt = db.prepare("UPDATE notification SET dismissed_at = CURRENT_TIMESTAMP WHERE id = ?");
+    stmt.bind(1, args.take());
+    stmt.step();
   } else {
     silog::die("unknown command %s", cmd.begin());
   }
