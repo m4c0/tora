@@ -26,6 +26,7 @@ public:
   }
 
   auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
+  auto column_text(unsigned i) { return sqlite3_column_text(*m_stmt, i); }
 };
 
 class db {
@@ -54,9 +55,22 @@ public:
 int main() try {
   db db { ":memory:" };
 
-  auto stmt = db.prepare("select 1 union select 2");
+  db.exec(R"(
+    CREATE TABLE notification (
+      id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      dismissed_at DATETIME,
+      text         TEXT NOT NULL
+    );
+  )");
+  db.exec("INSERT INTO notification (text) VALUES ('a')");
+  db.exec("INSERT INTO notification (text) VALUES ('b')");
+  db.exec("INSERT INTO notification (text) VALUES ('c')");
+  db.exec("INSERT INTO notification (text) VALUES ('d')");
+
+  auto stmt = db.prepare("SELECT * FROM notification");
   while (stmt.step()) {
-    silog::trace("row", stmt.column_int(0));
+    silog::log(silog::info, "%d %s %s", stmt.column_int(0), stmt.column_text(1), stmt.column_text(3));
   }
 } catch (...) {
   return 1;
