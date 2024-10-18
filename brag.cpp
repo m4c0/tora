@@ -58,9 +58,9 @@ static void init(tora::db & db) {
   )");
 }
 
-static void brag_list(tora::db & db) {
+static void brag_list(tora::db & db, bool full = false) {
   auto stmt = db.prepare(R"(
-    SELECT created_at, demoable, code, size, name 
+    SELECT created_at, demoable, code, size, name, id
     FROM brag
     ORDER BY created_at DESC
   )");
@@ -71,6 +71,21 @@ static void brag_list(tora::db & db) {
         stmt.column_int(2) == 0 ? "---" : "[C]",
         stmt.column_text(3),
         stmt.column_text(4));
+    if (!full) continue;
+
+    auto s2 = db.prepare(R"(
+      SELECT sprint
+      FROM sprint_brag
+      WHERE brag = ?
+      ORDER BY sprint
+    )");
+    s2.bind(1, stmt.column_int(5));
+    printf("    Sprints: ");
+    if (s2.step()) printf("%s", s2.column_text(0));
+    while (s2.step()) printf(", %s", s2.column_text(0));
+    printf("\n");
+
+    printf("\n");
   }
 }
 
@@ -78,7 +93,8 @@ static void brag(tora::db & db, args & args) {
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
 
-  if (cmd == "list") brag_list(db); 
+  if (cmd == "list") brag_list(db, true); 
+  else if (cmd == "full") brag_list(db, true);
   else silog::die("unknown command [brag %s]", cmd.begin());
 }
 
