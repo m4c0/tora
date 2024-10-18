@@ -5,6 +5,7 @@
 #pragma leco tool
 import args;
 import jute;
+import mtime;
 import silog;
 import tora;
 
@@ -62,13 +63,15 @@ int main(int argc, char ** argv) try {
   args args { argc, argv };
 
   auto file = (jute::view::unsafe(getenv("HOME")) + "/.brag").cstr();
+  bool create = mtime::of(file.begin()) == 0;
+
   tora::db db { file.begin() };
+  if (create) init(db);
 
   auto cmd = args.take();
   if (cmd == "") cmd = "brag";
 
-  if (cmd == "init") init(db);
-  else if (cmd == "brag") brag(db, args);
+  if (cmd == "brag") brag(db, args);
   else silog::die("unknown command %s", cmd.begin());
 } catch (...) {
   return 1;
