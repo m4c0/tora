@@ -13,8 +13,8 @@ extern "C" char * getenv(const char *name);
 static void init(tora::db & db) {
   db.exec(R"(
     CREATE TABLE size (
-      id           CHAR(2) NOT NULL PRIMARY KEY
-    );
+      id           TEXT NOT NULL PRIMARY KEY
+    ) STRICT;
     INSERT INTO size VALUES ('XS');
     INSERT INTO size VALUES ('S');
     INSERT INTO size VALUES ('M');
@@ -22,34 +22,34 @@ static void init(tora::db & db) {
     INSERT INTO size VALUES ('XL');
 
     CREATE TABLE link_type (
-      id           CHAR(4) NOT NULL PRIMARY KEY
-    );
+      id           TEXT NOT NULL PRIMARY KEY
+    ) STRICT;
     INSERT INTO link_type VALUES ('DEMO');
     INSERT INTO link_type VALUES ('CODE');
 
     CREATE TABLE brag (
       id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       name         TEXT NOT NULL,
-      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      demoable     BOOLEAN NOT NULL DEFAULT FALSE,
-      code         BOOLEAN NOT NULL DEFAULT FALSE,
-      size         CHAR(2) REFERENCES size(id)
-    );
+      created_at   TEXT NOT NULL DEFAULT CURRENT_DATE,
+      demoable     INT NOT NULL DEFAULT FALSE,
+      code         INT NOT NULL DEFAULT FALSE,
+      size         TEXT REFERENCES size(id)
+    ) STRICT;
 
     CREATE TABLE link (
       id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       brag         INTEGER NOT NULL REFERENCES brag(id),
-      type         CHAR(4) REFERENCES link_type(id),
+      type         TEXT REFERENCES link_type(id),
       href         TEXT NOT NULL,
       notes        TEXT NULL
-    );
+    ) STRICT;
     CREATE TABLE sprint (
       name         TEXT NOT NULL PRIMARY KEY
-    );
+    ) STRICT;
     CREATE TABLE sprint_brag (
       brag         INTEGER NOT NULL REFERENCES brag(id),
       sprint       INTEGER NOT NULL REFERENCES sprint(name)
-    );
+    ) STRICT;
   )");
 }
 
