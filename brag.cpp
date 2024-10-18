@@ -65,6 +65,12 @@ int main(int argc, char ** argv) try {
   auto file = (jute::view::unsafe(getenv("HOME")) + "/.brag").cstr();
   bool create = mtime::of(file.begin()) == 0;
 
+  // Tries to create in-memory for quicker syntax check
+  if (create) {
+    tora::db db { ":memory:" };
+    init(db);
+  }
+
   tora::db db { file.begin() };
   if (create) init(db);
 
