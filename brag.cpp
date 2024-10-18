@@ -54,9 +54,24 @@ static void init(tora::db & db) {
   )");
 }
 
+static void brag_list(tora::db & db) {
+  auto stmt = db.prepare("SELECT created_at, demoable, code, size, name FROM brag");
+  while (stmt.step()) {
+    silog::log(silog::info, "[%s] %c%c %2s %s",
+        stmt.column_text(0),
+        stmt.column_int(1) == 0 ? ' ' : 'D',
+        stmt.column_int(2) == 0 ? ' ' : 'C',
+        stmt.column_text(3),
+        stmt.column_text(4));
+  }
+}
+
 static void brag(tora::db & db, args & args) {
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
+
+  if (cmd == "list") brag_list(db); 
+  else silog::die("unknown command [brag %s]", cmd.begin());
 }
 
 int main(int argc, char ** argv) try {
