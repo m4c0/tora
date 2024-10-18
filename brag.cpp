@@ -65,10 +65,10 @@ static void brag_list(tora::db & db) {
     ORDER BY created_at DESC
   )");
   while (stmt.step()) {
-    printf("[%s] %c %c %2s %s\n",
+    printf("[%s] %s %s %2s %s\n",
         stmt.column_text(0),
-        stmt.column_int(1) == 0 ? ' ' : 'D',
-        stmt.column_int(2) == 0 ? ' ' : 'C',
+        stmt.column_int(1) == 0 ? "---" : "[D]",
+        stmt.column_int(2) == 0 ? "---" : "[C]",
         stmt.column_text(3),
         stmt.column_text(4));
   }
