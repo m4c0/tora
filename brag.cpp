@@ -9,7 +9,8 @@ import mtime;
 import silog;
 import tora;
 
-extern "C" char * getenv(const char *name);
+#include <stdio.h>
+#include <stdlib.h>
 
 static void init(tora::db & db) {
   db.exec(R"(
@@ -55,9 +56,13 @@ static void init(tora::db & db) {
 }
 
 static void brag_list(tora::db & db) {
-  auto stmt = db.prepare("SELECT created_at, demoable, code, size, name FROM brag");
+  auto stmt = db.prepare(R"(
+    SELECT created_at, demoable, code, size, name 
+    FROM brag
+    ORDER BY created_at DESC
+  )");
   while (stmt.step()) {
-    silog::log(silog::info, "[%s] %c%c %2s %s",
+    printf("[%s] %c %c %2s %s\n",
         stmt.column_text(0),
         stmt.column_int(1) == 0 ? ' ' : 'D',
         stmt.column_int(2) == 0 ? ' ' : 'C',
