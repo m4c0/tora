@@ -85,6 +85,19 @@ static void brag_list(tora::db & db, bool full = false) {
     while (s2.step()) printf(", %s", s2.column_text(0));
     printf("\n");
 
+    s2 = db.prepare(R"(
+      SELECT type, href, notes
+      FROM link
+      WHERE brag = ?
+    )");
+    s2.bind(1, stmt.column_int(5));
+    printf("    Links:\n");
+    while (s2.step()) {
+      printf("    - %s %s\n",
+          s2.column_text(0),
+          s2.column_text(1));
+    }
+
     printf("\n");
   }
 }
