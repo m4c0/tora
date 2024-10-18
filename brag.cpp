@@ -93,9 +93,11 @@ static void brag_list(tora::db & db, bool full = false) {
     s2.bind(1, stmt.column_int(5));
     printf("    Links:\n");
     while (s2.step()) {
-      printf("    - %s %s\n",
+      printf("    - %s %s",
           s2.column_text(0),
           s2.column_text(1));
+      if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
+      printf("\n");
     }
 
     printf("\n");
