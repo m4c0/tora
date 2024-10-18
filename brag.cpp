@@ -4,6 +4,8 @@
 //
 #pragma leco tool
 import args;
+import hai;
+import jojo;
 import jute;
 import mtime;
 import silog;
@@ -82,17 +84,19 @@ static void brag(tora::db & db, args & args) {
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
-  auto file = (jute::view::unsafe(getenv("HOME")) + "/.brag").cstr();
-  bool create = mtime::of(file.begin()) == 0;
-
-  // Tries to create in-memory for quicker syntax check
-  if (create) {
-    tora::db db { ":memory:" };
-    init(db);
+  hai::cstr file = jute::view { ":memory:" }.cstr();
+  bool create = true;
+  if (mtime::of("test.sql") == 0) {
+    file = (jute::view::unsafe(getenv("HOME")) + "/.brag").cstr();
+    create = mtime::of(file.begin()) == 0;
   }
 
   tora::db db { file.begin() };
   if (create) init(db);
+
+  db.exec("PRAGMA foreign_key");
+
+  if (mtime::of("test.sql")) db.exec(jojo::read_cstr("test.sql").begin());
 
   auto cmd = args.take();
   if (cmd == "") cmd = "brag";
