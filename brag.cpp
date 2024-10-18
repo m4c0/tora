@@ -52,7 +52,8 @@ static void init(tora::db & db) {
     ) STRICT;
     CREATE TABLE sprint_brag (
       brag         INTEGER NOT NULL REFERENCES brag(id),
-      sprint       INTEGER NOT NULL REFERENCES sprint(name)
+      sprint       TEXT NOT NULL REFERENCES sprint(name),
+      UNIQUE (brag, sprint)
     ) STRICT;
   )");
 }
