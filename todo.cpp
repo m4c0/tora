@@ -4,6 +4,17 @@ import args;
 import silog;
 import tora;
 
+// The quintessencial "TO-DO" application.
+// Usage: todo <cmd> <cmd args>
+// 
+// Where cmd is one of:
+//   init         - creates DB
+//   add <text>   - creates an entry with "<text>" as content
+//   list         - list existing items (default command)
+//   dismiss <N>  - dismiss entry with ID <N>
+//
+// Currently data is stored inside a file named "out/.tora" for lazyness
+// reasons
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
