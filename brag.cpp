@@ -47,6 +47,7 @@ static void init(tora::db & db) {
       href         TEXT NOT NULL,
       notes        TEXT NULL
     ) STRICT;
+
     CREATE TABLE sprint (
       name         TEXT NOT NULL PRIMARY KEY
     ) STRICT;
@@ -54,6 +55,12 @@ static void init(tora::db & db) {
       brag         INTEGER NOT NULL REFERENCES brag(id),
       sprint       TEXT NOT NULL REFERENCES sprint(name),
       UNIQUE (brag, sprint)
+    ) STRICT;
+
+    CREATE TABLE comment (
+      id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      brag         INTEGER NOT NULL REFERENCES brag(id),
+      notes        TEXT NOT NULL
     ) STRICT;
   )");
 }
@@ -98,6 +105,21 @@ static void brag_list(tora::db & db, bool full = false) {
           s2.column_text(1));
       if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
       printf("\n");
+    }
+
+    s2 = db.prepare(R"(
+      SELECT notes
+      FROM comment
+      WHERE brag = ?
+    )");
+    s2.bind(1, stmt.column_int(5));
+    while (s2.step()) {
+      auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
+      while (notes != "") {
+        auto [l, r] = notes.split('\n');
+        printf("\n    %.*s\n", static_cast<int>(l.size()), l.data());
+        notes = r;
+      }
     }
 
     printf("\n");
