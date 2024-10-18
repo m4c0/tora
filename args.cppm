@@ -9,7 +9,7 @@ public:
   args(int argc, char ** argv) : m_c { argc - 1 }, m_v { argv + 1 } {};
 
   jute::view take() {
-    return m_c-- ? jute::view::unsafe(*m_v++) : jute::view {};
+    return m_c-- > 0 ? jute::view::unsafe(*m_v++) : jute::view {};
   }
 };
 
