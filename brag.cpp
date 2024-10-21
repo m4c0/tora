@@ -146,7 +146,7 @@ void brag_view(tora::db & db, args & args) {
     auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
     while (notes != "") {
       auto [l, r] = notes.split('\n');
-      printf("\n     %.*s\n", static_cast<int>(l.size()), l.data());
+      printf("\n     %.*s", static_cast<int>(l.size()), l.data());
       notes = r;
     }
   }
