@@ -74,7 +74,8 @@ static void brag_list(tora::db & db, bool full = false) {
   )");
   while (stmt.step()) {
     constexpr const unsigned char empty_size[3] { "--" };
-    printf("[%s] %s %s %2s %s\n",
+    printf("%4d [%s] %s %s %2s %s\n",
+        stmt.column_int(5),
         stmt.column_text(0),
         stmt.column_int(1) == 0 ? "---" : "[D]",
         stmt.column_int(2) == 0 ? "---" : "[C]",
