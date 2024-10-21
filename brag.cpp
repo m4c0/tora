@@ -70,14 +70,15 @@ static void brag_list(tora::db & db, bool full = false) {
   auto stmt = db.prepare(R"(
     SELECT created_at, demoable, code, size, name, id
     FROM brag
-    ORDER BY created_at DESC
+    ORDER BY created_at ASC
   )");
   while (stmt.step()) {
+    constexpr const unsigned char empty_size[3] { "--" };
     printf("[%s] %s %s %2s %s\n",
         stmt.column_text(0),
         stmt.column_int(1) == 0 ? "---" : "[D]",
         stmt.column_int(2) == 0 ? "---" : "[C]",
-        stmt.column_text(3),
+        stmt.column_text(3) == nullptr ? empty_size : stmt.column_text(3),
         stmt.column_text(4));
     if (!full) continue;
 
