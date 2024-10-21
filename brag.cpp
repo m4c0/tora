@@ -66,7 +66,9 @@ static void init(tora::db & db) {
   )");
 }
 
-static void brag_list(tora::db & db, bool full = false) {
+static void brag_list(tora::db & db, args & args, bool full = false) {
+  if (args.take() != "") silog::die("'list' doesn't have sub-commands");
+
   auto stmt = db.prepare(R"(
     SELECT created_at, demoable, code, size, name, id
     FROM brag
@@ -129,7 +131,9 @@ static void brag_list(tora::db & db, bool full = false) {
   }
 }
 
-static void brag_prompt(tora::db & db) {
+static void brag_prompt(tora::db & db, args & args) {
+  if (args.take() != "") silog::die("'prompt' doesn't have sub-commands");
+
   printf("Given the following notes, write a promotion document.\n\n");
 
   auto stmt = db.prepare("SELECT id, name FROM brag ORDER BY created_at DESC");
@@ -182,9 +186,9 @@ int main(int argc, char ** argv) try {
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
 
-  if (cmd == "list") brag_list(db, false); 
-  else if (cmd == "full") brag_list(db, true);
-  else if (cmd == "prompt") brag_prompt(db);
+  if (cmd == "list") brag_list(db, args, false); 
+  else if (cmd == "full") brag_list(db, args, true);
+  else if (cmd == "prompt") brag_prompt(db, args);
   else silog::die("unknown command [%s]", cmd.begin());
 } catch (...) {
   return 1;
