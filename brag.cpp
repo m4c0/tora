@@ -186,6 +186,34 @@ static void brag_prompt(tora::db & db, args & args) {
   }
 }
 
+void brag_add(tora::db & db, args & args) {
+  auto stmt = db.prepare("INSERT INTO brag (name) VALUES (?)");
+  stmt.bind(1, args.take());
+  stmt.step();
+}
+void brag_rename(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE brag SET name = ? WHERE id = ?");
+  stmt.bind(2, args.take_int());
+  stmt.bind(1, args.take());
+  stmt.step();
+}
+void brag_size(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE brag SET size = ? WHERE id = ?");
+  stmt.bind(2, args.take_int());
+  stmt.bind(1, args.take());
+  stmt.step();
+}
+void brag_demo(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE brag SET demoable = 1 - demoable WHERE id = ?");
+  stmt.bind(1, args.take());
+  stmt.step();
+}
+void brag_code(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE brag SET code = 1 - code WHERE id = ?");
+  stmt.bind(1, args.take());
+  stmt.step();
+}
+
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
@@ -209,6 +237,11 @@ int main(int argc, char ** argv) try {
   if (cmd == "list") brag_list(db, args, false); 
   else if (cmd == "full") brag_list(db, args, true);
   else if (cmd == "prompt") brag_prompt(db, args);
+  else if (cmd == "add") brag_add(db, args);
+  else if (cmd == "size") brag_size(db, args);
+  else if (cmd == "demo") brag_demo(db, args);
+  else if (cmd == "code") brag_code(db, args);
+  else if (cmd == "rename") brag_rename(db, args);
   else silog::die("unknown command [%s]", cmd.begin());
 } catch (...) {
   return 1;

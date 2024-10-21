@@ -11,5 +11,12 @@ public:
   jute::view take() {
     return m_c-- > 0 ? jute::view::unsafe(*m_v++) : jute::view {};
   }
+  unsigned take_int() {
+    unsigned res {};
+    for (auto c : take()) {
+      res = res * 10 + (c - '0');
+    }
+    return res;
+  }
 };
 
