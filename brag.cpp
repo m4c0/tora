@@ -74,16 +74,36 @@ static void brag_list(tora::db & db, args & args, bool full = false) {
     FROM brag
     ORDER BY created_at ASC
   )");
+  bool odd = true;
   while (stmt.step()) {
     constexpr const unsigned char empty_size[3] { "--" };
-    printf("%4d [%s] %s %s %2s %s\n",
+
+    if (odd) printf("\e[48;5;232m");
+    odd = !odd;
+
+    int size_colour = 8;
+    auto size = stmt.column_text(3);
+    if (size != nullptr) {
+      auto sz = jute::view::unsafe(reinterpret_cast<const char *>(size));
+      if (sz == "XS") size_colour = 5;
+      else if (sz == "S") size_colour = 99;
+      else if (sz == "M") size_colour = 11;
+      else if (sz == "L") size_colour = 21;
+      else if (sz == "XL") size_colour = 39;
+    }
+
+    printf("%4d [%s]    %s %s \e[38;5;%dm%2s\e[39m    %s\e[0K\n",
         stmt.column_int(5),
         stmt.column_text(0),
-        stmt.column_int(1) == 0 ? "---" : "[D]",
-        stmt.column_int(2) == 0 ? "---" : "[C]",
-        stmt.column_text(3) == nullptr ? empty_size : stmt.column_text(3),
+        stmt.column_int(1) == 0 ? "---" : "\e[31m[D]\e[39m",
+        stmt.column_int(2) == 0 ? "---" : "\e[32m[C]\e[39m",
+        size_colour,
+        size == nullptr ? empty_size : size,
         stmt.column_text(4));
-    if (!full) continue;
+    if (!full) {
+      printf("\e[0m\e[2K");
+      continue;
+    }
 
     auto s2 = db.prepare(R"(
       SELECT sprint
@@ -127,7 +147,7 @@ static void brag_list(tora::db & db, args & args, bool full = false) {
       }
     }
 
-    printf("\n");
+    printf("\n\e[0m");
   }
 }
 
