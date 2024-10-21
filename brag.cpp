@@ -66,6 +66,30 @@ static void init(tora::db & db) {
   )");
 }
 
+static void print_brag(tora::stmt & stmt) {
+  constexpr const unsigned char empty_size[3] { "--" };
+
+  int size_colour = 8;
+  auto size = stmt.column_text(3);
+  if (size != nullptr) {
+    auto sz = jute::view::unsafe(reinterpret_cast<const char *>(size));
+    if (sz == "XS") size_colour = 5;
+    else if (sz == "S") size_colour = 99;
+    else if (sz == "M") size_colour = 11;
+    else if (sz == "L") size_colour = 21;
+    else if (sz == "XL") size_colour = 39;
+  }
+
+  printf("%4d [%s]    %s %s \e[38;5;%dm%2s\e[39m    %s\e[0K\n",
+      stmt.column_int(5),
+      stmt.column_text(0),
+      stmt.column_int(1) == 0 ? "---" : "\e[31m[D]\e[39m",
+      stmt.column_int(2) == 0 ? "---" : "\e[32m[C]\e[39m",
+      size_colour,
+      size == nullptr ? empty_size : size,
+      stmt.column_text(4));
+}
+
 static void brag_list(tora::db & db, args & args, bool full = false) {
   if (args.take() != "") silog::die("'list' doesn't have sub-commands");
 
@@ -76,79 +100,57 @@ static void brag_list(tora::db & db, args & args, bool full = false) {
   )");
   bool odd = true;
   while (stmt.step()) {
-    constexpr const unsigned char empty_size[3] { "--" };
-
     if (odd) printf("\e[48;5;232m");
     odd = !odd;
 
-    int size_colour = 8;
-    auto size = stmt.column_text(3);
-    if (size != nullptr) {
-      auto sz = jute::view::unsafe(reinterpret_cast<const char *>(size));
-      if (sz == "XS") size_colour = 5;
-      else if (sz == "S") size_colour = 99;
-      else if (sz == "M") size_colour = 11;
-      else if (sz == "L") size_colour = 21;
-      else if (sz == "XL") size_colour = 39;
-    }
+    print_brag(stmt);
 
-    printf("%4d [%s]    %s %s \e[38;5;%dm%2s\e[39m    %s\e[0K\n",
-        stmt.column_int(5),
-        stmt.column_text(0),
-        stmt.column_int(1) == 0 ? "---" : "\e[31m[D]\e[39m",
-        stmt.column_int(2) == 0 ? "---" : "\e[32m[C]\e[39m",
-        size_colour,
-        size == nullptr ? empty_size : size,
-        stmt.column_text(4));
-    if (!full) {
-      printf("\e[0m\e[2K");
-      continue;
-    }
-
-    auto s2 = db.prepare(R"(
-      SELECT sprint
-      FROM sprint_brag
-      WHERE brag = ?
-      ORDER BY sprint
-    )");
-    s2.bind(1, stmt.column_int(5));
-    printf("    Sprints: ");
-    if (s2.step()) printf("%s", s2.column_text(0));
-    while (s2.step()) printf(", %s", s2.column_text(0));
-    printf("\n");
-
-    s2 = db.prepare(R"(
-      SELECT type, href, notes
-      FROM link
-      WHERE brag = ?
-    )");
-    s2.bind(1, stmt.column_int(5));
-    printf("    Links:\n");
-    while (s2.step()) {
-      printf("    - %s %s",
-          s2.column_text(0),
-          s2.column_text(1));
-      if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
-      printf("\n");
-    }
-
-    s2 = db.prepare(R"(
-      SELECT notes
-      FROM comment
-      WHERE brag = ?
-    )");
-    s2.bind(1, stmt.column_int(5));
-    while (s2.step()) {
-      auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
-      while (notes != "") {
-        auto [l, r] = notes.split('\n');
-        printf("\n    %.*s\n", static_cast<int>(l.size()), l.data());
-        notes = r;
-      }
-    }
-
-    printf("\n\e[0m");
+    printf("\e[0m\e[2K");
   }
+}
+void brag_view(tora::db & db, args & args) {
+  auto id = args.take_int();
+  if (args.take() != "") silog::die("excess of arguments");
+
+  auto stmt = db.prepare(R"(
+    SELECT created_at, demoable, code, size, name, id
+    FROM brag
+    WHERE id = ?
+  )");
+  stmt.bind(1, id);
+  if (!stmt.step()) silog::die("brag with id %d not found", id);
+  print_brag(stmt);
+  printf("\n");
+
+  auto s2 = db.prepare("SELECT sprint FROM sprint_brag WHERE brag = ? ORDER BY sprint");
+  s2.bind(1, id);
+  printf("     Sprints: ");
+  if (s2.step()) printf("%s", s2.column_text(0));
+  while (s2.step()) printf(", %s", s2.column_text(0));
+  printf("\n");
+
+  s2 = db.prepare("SELECT type, href, notes FROM link WHERE brag = ?");
+  s2.bind(1, id);
+  printf("     Links:\n");
+  while (s2.step()) {
+    printf("     - %s %s",
+        s2.column_text(0),
+        s2.column_text(1));
+    if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
+    printf("\n");
+  }
+
+  s2 = db.prepare("SELECT notes FROM comment WHERE brag = ?");
+  s2.bind(1, id);
+  while (s2.step()) {
+    auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
+    while (notes != "") {
+      auto [l, r] = notes.split('\n');
+      printf("\n     %.*s\n", static_cast<int>(l.size()), l.data());
+      notes = r;
+    }
+  }
+  printf("\n");
 }
 
 static void brag_prompt(tora::db & db, args & args) {
@@ -239,8 +241,8 @@ int main(int argc, char ** argv) try {
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
 
-  if (cmd == "list") brag_list(db, args, false); 
-  else if (cmd == "full") brag_list(db, args, true);
+  if (cmd == "list") brag_list(db, args); 
+  else if (cmd == "view") brag_view(db, args);
   else if (cmd == "prompt") brag_prompt(db, args);
   else if (cmd == "add") brag_add(db, args);
   else if (cmd == "size") brag_size(db, args);
