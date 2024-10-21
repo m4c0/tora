@@ -189,28 +189,33 @@ static void brag_prompt(tora::db & db, args & args) {
 void brag_add(tora::db & db, args & args) {
   auto stmt = db.prepare("INSERT INTO brag (name) VALUES (?)");
   stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
 void brag_rename(tora::db & db, args & args) {
   auto stmt = db.prepare("UPDATE brag SET name = ? WHERE id = ?");
   stmt.bind(2, args.take_int());
   stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
 void brag_size(tora::db & db, args & args) {
   auto stmt = db.prepare("UPDATE brag SET size = ? WHERE id = ?");
   stmt.bind(2, args.take_int());
   stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
 void brag_demo(tora::db & db, args & args) {
   auto stmt = db.prepare("UPDATE brag SET demoable = 1 - demoable WHERE id = ?");
   stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
 void brag_code(tora::db & db, args & args) {
   auto stmt = db.prepare("UPDATE brag SET code = 1 - code WHERE id = ?");
   stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
 
