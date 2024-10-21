@@ -129,24 +129,33 @@ void brag_view(tora::db & db, args & args) {
   while (s2.step()) printf(", %s", s2.column_text(0));
   printf("\n");
 
-  s2 = db.prepare("SELECT type, href, notes FROM link WHERE brag = ?");
+  s2 = db.prepare("SELECT type, href, notes, id FROM link WHERE brag = ?");
   s2.bind(1, id);
   printf("     Links:\n");
   while (s2.step()) {
-    printf("     - %s %s",
+    printf("%4d - %s %s",
+        s2.column_int(3),
         s2.column_text(0),
         s2.column_text(1));
     if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
     printf("\n");
   }
 
-  s2 = db.prepare("SELECT notes FROM comment WHERE brag = ?");
+  s2 = db.prepare("SELECT notes, id FROM comment WHERE brag = ?");
   s2.bind(1, id);
   while (s2.step()) {
     auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
+    bool first = true;
     while (notes != "") {
       auto [l, r] = notes.split('\n');
-      printf("\n     %.*s", static_cast<int>(l.size()), l.data());
+      if (first) {
+        printf("\n%4d %.*s", 
+            s2.column_int(1),
+            static_cast<int>(l.size()), l.data());
+        first = false;
+      } else {
+        printf("\n%4s %.*s", "", static_cast<int>(l.size()), l.data());
+      }
       notes = r;
     }
   }
