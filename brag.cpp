@@ -30,6 +30,7 @@ static void init(tora::db & db) {
     ) STRICT;
     INSERT INTO link_type VALUES ('DEMO');
     INSERT INTO link_type VALUES ('CODE');
+    INSERT INTO link_type VALUES ('TASK');
 
     CREATE TABLE brag (
       id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -126,12 +127,46 @@ static void brag_list(tora::db & db, bool full = false) {
   }
 }
 
+static void brag_prompt(tora::db & db) {
+  printf("Given the following notes, write a promotion document.\n\n");
+
+  auto stmt = db.prepare("SELECT id, name FROM brag ORDER BY created_at DESC");
+  while (stmt.step()) {
+    printf("%s\n", stmt.column_text(1));
+
+    auto s2 = db.prepare("SELECT type, href, notes FROM link WHERE brag = ?");
+    s2.bind(1, stmt.column_int(0));
+    printf("    Links:\n");
+    while (s2.step()) {
+      printf("    - %s %s",
+          s2.column_text(0),
+          s2.column_text(1));
+      if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
+      printf("\n");
+    }
+
+    s2 = db.prepare("SELECT notes FROM comment WHERE brag = ?");
+    s2.bind(1, stmt.column_int(0));
+    while (s2.step()) {
+      auto notes = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
+      while (notes != "") {
+        auto [l, r] = notes.split('\n');
+        printf("\n    %.*s\n", static_cast<int>(l.size()), l.data());
+        notes = r;
+      }
+    }
+
+    printf("\n");
+  }
+}
+
 static void brag(tora::db & db, args & args) {
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
 
-  if (cmd == "list") brag_list(db, true); 
+  if (cmd == "list") brag_list(db, false); 
   else if (cmd == "full") brag_list(db, true);
+  else if (cmd == "prompt") brag_prompt(db);
   else silog::die("unknown command [brag %s]", cmd.begin());
 }
 
