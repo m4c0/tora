@@ -162,16 +162,6 @@ static void brag_prompt(tora::db & db) {
   }
 }
 
-static void brag(tora::db & db, args & args) {
-  auto cmd = args.take();
-  if (cmd == "") cmd = "list";
-
-  if (cmd == "list") brag_list(db, false); 
-  else if (cmd == "full") brag_list(db, true);
-  else if (cmd == "prompt") brag_prompt(db);
-  else silog::die("unknown command [brag %s]", cmd.begin());
-}
-
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
@@ -190,10 +180,12 @@ int main(int argc, char ** argv) try {
   if (mtime::of("test.sql")) db.exec(jojo::read_cstr("test.sql").begin());
 
   auto cmd = args.take();
-  if (cmd == "") cmd = "brag";
+  if (cmd == "") cmd = "list";
 
-  if (cmd == "brag") brag(db, args);
-  else silog::die("unknown command %s", cmd.begin());
+  if (cmd == "list") brag_list(db, false); 
+  else if (cmd == "full") brag_list(db, true);
+  else if (cmd == "prompt") brag_prompt(db);
+  else silog::die("unknown command [%s]", cmd.begin());
 } catch (...) {
   return 1;
 }
