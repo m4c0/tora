@@ -232,6 +232,51 @@ void brag_code(tora::db & db, args & args) {
   stmt.step();
 }
 
+void brag_comment_add(tora::db & db, args & args) {
+  auto stmt = db.prepare("INSERT INTO comment (brag, notes) VALUES (?, ?)");
+  stmt.bind(1, args.take_int());
+  stmt.bind(2, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
+  stmt.step();
+}
+
+void brag_comment(tora::db & db, args & args) {
+  auto cmd = args.take();
+  if (cmd == "add") brag_comment_add(db, args);
+  else silog::die("invalid comment sub-command");
+}
+
+void brag_link_add(tora::db & db, args & args) {
+  auto stmt = db.prepare("INSERT INTO link (brag, type, href, notes) VALUES (?, ?, ?, ?)");
+  stmt.bind(1, args.take_int());
+  stmt.bind(2, args.take());
+  stmt.bind(3, args.take());
+  stmt.bind(4, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
+  stmt.step();
+}
+void brag_link_type(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE link SET type = ? WHERE id = ?");
+  stmt.bind(2, args.take_int());
+  stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
+  stmt.step();
+}
+void brag_link_delete(tora::db & db, args & args) {
+  auto stmt = db.prepare("DELETE FROM link WHERE id = ?");
+  stmt.bind(1, args.take_int());
+  if (args.take() != "") silog::die("excess of parameters");
+  stmt.step();
+}
+
+void brag_link(tora::db & db, args & args) {
+  auto cmd = args.take();
+  if (cmd == "add") brag_link_add(db, args);
+  else if (cmd == "type") brag_link_type(db, args);
+  else if (cmd == "delete") brag_link_delete(db, args);
+  else silog::die("invalid link sub-command");
+}
+
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
@@ -260,6 +305,8 @@ int main(int argc, char ** argv) try {
   else if (cmd == "demo") brag_demo(db, args);
   else if (cmd == "code") brag_code(db, args);
   else if (cmd == "rename") brag_rename(db, args);
+  else if (cmd == "comment") brag_comment(db, args);
+  else if (cmd == "link") brag_link(db, args);
   else silog::die("unknown command [%s]", cmd.begin());
 } catch (...) {
   return 1;
