@@ -1,6 +1,9 @@
 #pragma leco tool
+#include <stdio.h>
+#include <stdlib.h>
 
 import args;
+import jute;
 import silog;
 import tora;
 
@@ -18,7 +21,7 @@ import tora;
 int main(int argc, char ** argv) try {
   args args { argc, argv };
 
-  tora::db db { "out/.tora" };
+  tora::db db { (jute::view::unsafe(getenv("HOME")) + "/.todo").cstr().begin() };
 
   auto cmd = args.take();
   if (cmd == "") cmd = "list";
