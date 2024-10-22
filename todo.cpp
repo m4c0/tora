@@ -42,7 +42,7 @@ int main(int argc, char ** argv) try {
   } else if (cmd == "list") {
     auto stmt = db.prepare("SELECT * FROM notification WHERE dismissed_at IS NULL");
     while (stmt.step()) {
-      silog::log(silog::info, "%d %s %s", stmt.column_int(0), stmt.column_text(1), stmt.column_text(3));
+      printf("\e[38;5;238m%4d %s\e[0m %s\n", stmt.column_int(0), stmt.column_text(1), stmt.column_text(3));
     }
   } else if (cmd == "dismiss") {
     auto stmt = db.prepare("UPDATE notification SET dismissed_at = CURRENT_TIMESTAMP WHERE id = ?");

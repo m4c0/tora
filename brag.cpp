@@ -66,6 +66,10 @@ static void init(tora::db & db) {
   )");
 }
 
+static void print_id(tora::stmt & stmt, unsigned index) {
+  printf("\e[38;5;237m%4d\e[39m ", stmt.column_int(index));
+}
+
 static void print_brag(tora::stmt & stmt) {
   constexpr const unsigned char empty_size[3] { "--" };
 
@@ -80,8 +84,8 @@ static void print_brag(tora::stmt & stmt) {
     else if (sz == "XL") size_colour = 39;
   }
 
-  printf("%4d [%s]    %s %s \e[38;5;%dm%2s\e[39m    %s\e[0K\n",
-      stmt.column_int(5),
+  print_id(stmt, 5);
+  printf("[%s]    %s %s \e[38;5;%dm%2s\e[39m    %s\e[0K\n",
       stmt.column_text(0),
       stmt.column_int(1) == 0 ? "---" : "\e[31m[D]\e[39m",
       stmt.column_int(2) == 0 ? "---" : "\e[32m[C]\e[39m",
@@ -133,10 +137,8 @@ void brag_view(tora::db & db, args & args) {
   s2.bind(1, id);
   printf("     Links:\n");
   while (s2.step()) {
-    printf("%4d - %s %s",
-        s2.column_int(3),
-        s2.column_text(0),
-        s2.column_text(1));
+    print_id(s2, 3);
+    printf("- %s %s", s2.column_text(0), s2.column_text(1));
     if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
     printf("\n");
   }
@@ -149,9 +151,9 @@ void brag_view(tora::db & db, args & args) {
     while (notes != "") {
       auto [l, r] = notes.split('\n');
       if (first) {
-        printf("\n%4d %.*s", 
-            s2.column_int(1),
-            static_cast<int>(l.size()), l.data());
+        printf("\n");
+        print_id(s2, 1);
+        printf("%.*s", static_cast<int>(l.size()), l.data());
         first = false;
       } else {
         printf("\n%4s %.*s", "", static_cast<int>(l.size()), l.data());
