@@ -137,9 +137,15 @@ void brag_view(tora::db & db, args & args) {
   s2.bind(1, id);
   printf("     Links:\n");
   while (s2.step()) {
+    int colour = 39;
+    auto type = jute::view::unsafe(reinterpret_cast<const char *>(s2.column_text(0)));
+    if (type == "CODE") colour = 31;
+    else if (type == "DEMO") colour = 32;
+    else if (type == "TASK") colour = 33;
+
     print_id(s2, 3);
-    printf("- %s %s", s2.column_text(0), s2.column_text(1));
-    if (s2.column_text(2)) printf(" (%s)", s2.column_text(2));
+    printf("- \e[%dm%s\e[39m %s", colour, s2.column_text(0), s2.column_text(1));
+    if (s2.column_text(2)) printf(" \e[38;5;238m(%s)\e[39m", s2.column_text(2));
     printf("\n");
   }
 
