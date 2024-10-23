@@ -268,6 +268,13 @@ void brag_link_type(tora::db & db, args & args) {
   if (args.take() != "") silog::die("excess of parameters");
   stmt.step();
 }
+void brag_link_notes(tora::db & db, args & args) {
+  auto stmt = db.prepare("UPDATE link SET notes = ? WHERE id = ?");
+  stmt.bind(2, args.take_int());
+  stmt.bind(1, args.take());
+  if (args.take() != "") silog::die("excess of parameters");
+  stmt.step();
+}
 void brag_link_delete(tora::db & db, args & args) {
   auto stmt = db.prepare("DELETE FROM link WHERE id = ?");
   stmt.bind(1, args.take_int());
@@ -279,6 +286,7 @@ void brag_link(tora::db & db, args & args) {
   auto cmd = args.take();
   if (cmd == "add") brag_link_add(db, args);
   else if (cmd == "type") brag_link_type(db, args);
+  else if (cmd == "notes") brag_link_notes(db, args);
   else if (cmd == "delete") brag_link_delete(db, args);
   else silog::die("invalid link sub-command");
 }
