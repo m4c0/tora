@@ -41,9 +41,19 @@ int main(int argc, char ** argv) try {
     stmt.step();
   } else if (cmd == "list") {
     auto stmt = db.prepare("SELECT * FROM notification WHERE dismissed_at IS NULL");
+    bool odd = true;
     while (stmt.step()) {
-      printf("\e[38;5;238m%4d %s\e[0m %s\n", stmt.column_int(0), stmt.column_text(1), stmt.column_text(3));
+      if (odd) printf("\e[48;5;232m");
+      odd = !odd;
+
+      printf("\e[38;5;238m%s %4d \e[39m%s\e[0K\n", stmt.column_text(1), stmt.column_int(0), stmt.column_text(3));
+      printf("\e[0m\e[2K");
     }
+  } else if (cmd == "edit") {
+    auto stmt = db.prepare("UPDATE notification SET text = ? WHERE id = ?");
+    stmt.bind(2, args.take_int());
+    stmt.bind(1, args.take());
+    stmt.step();
   } else if (cmd == "dismiss") {
     auto stmt = db.prepare("UPDATE notification SET dismissed_at = CURRENT_TIMESTAMP WHERE id = ?");
     stmt.bind(1, args.take());
