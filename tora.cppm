@@ -32,6 +32,10 @@ namespace tora {
       }
     }
 
+    void reset() {
+      check(sqlite3_reset(*m_stmt), "failed to reset statement");
+    }
+
     void bind(unsigned i, jute::view str) {
       check(sqlite3_bind_text(*m_stmt, i, str.begin(), str.size(), SQLITE_TRANSIENT), "failed to bind parameter");
     }
