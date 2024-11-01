@@ -22,6 +22,7 @@ namespace tora {
     }
 
   public:
+    explicit stmt() = default;
     explicit stmt(sqlite3 * db, sqlite3_stmt * s) : m_db { db }, m_stmt { s } {}
 
     bool step() {
