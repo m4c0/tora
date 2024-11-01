@@ -56,6 +56,8 @@ namespace tora {
   public:
     explicit db(const char * file) { check(sqlite3_open(file, &*m_db), "failed to open DB:"); };
 
+    [[nodiscard]] constexpr auto handle() { return *m_db; }
+
     void exec(const char * sql) {
       check(sqlite3_exec(*m_db, sql, nullptr, nullptr, nullptr), "failed to execute query");
     }
