@@ -40,6 +40,7 @@ namespace tora {
       check(sqlite3_bind_text(*m_stmt, i, str.begin(), str.size(), SQLITE_TRANSIENT), "failed to bind parameter");
     }
     void bind(unsigned i, int n) { check(sqlite3_bind_int(*m_stmt, i, n), "failed to bind parameter"); }
+    void bind64(unsigned i, long long n) { check(sqlite3_bind_int64(*m_stmt, i, n), "failed to bind parameter"); }
 
     auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
     auto column_text(unsigned i) { return sqlite3_column_text(*m_stmt, i); }
