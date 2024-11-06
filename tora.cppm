@@ -63,6 +63,10 @@ namespace tora {
       check(sqlite3_exec(*m_db, sql, nullptr, nullptr, nullptr), "failed to execute query");
     }
 
+    auto changes() {
+      return sqlite3_changes(*m_db);
+    }
+
     auto prepare(const char * sql) {
       sqlite3_stmt * s {};
       check(sqlite3_prepare_v2(*m_db, sql, -1, &s, nullptr), "failed to prepare query");
