@@ -45,6 +45,10 @@ namespace tora {
 
     auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
     auto column_text(unsigned i) { return sqlite3_column_text(*m_stmt, i); }
+    auto column_view(unsigned i) {
+      auto t = reinterpret_cast<const char *>(column_text(i));
+      return t ? jute::view::unsafe(t) : jute::view {};
+    }
   };
 
   export class db {
