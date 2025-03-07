@@ -47,10 +47,12 @@ int main(int argc, char ** argv) try {
       if (odd) printf("\e[48;5;232m");
       odd = !odd;
 
+      auto flag = reinterpret_cast<const char *>(stmt.column_text(3));
+
       printf("\e[38;5;238m%s %4d \e[39m%s %s\e[0K\n",
           stmt.column_text(1),
           stmt.column_int(0),
-          stmt.column_text(3),
+          flag ? flag : "  ",
           stmt.column_text(4));
       printf("\e[0m\e[2K");
     }
