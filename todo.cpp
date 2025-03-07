@@ -32,6 +32,7 @@ int main(int argc, char ** argv) try {
         id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         dismissed_at DATETIME,
+        flag         TEXT,
         text         TEXT NOT NULL
       );
     )");
@@ -57,6 +58,16 @@ int main(int argc, char ** argv) try {
   } else if (cmd == "dismiss") {
     auto stmt = db.prepare("UPDATE notification SET dismissed_at = CURRENT_TIMESTAMP WHERE id = ?");
     stmt.bind(1, args.take());
+    stmt.step();
+  } else if (cmd == "important") {
+    auto stmt = db.prepare("UPDATE notification SET flag = ? WHERE id = ?");
+    stmt.bind(1, "🔴");
+    stmt.bind(2, args.take());
+    stmt.step();
+  } else if (cmd == "urgent") {
+    auto stmt = db.prepare("UPDATE notification SET flag = ? WHERE id = ?");
+    stmt.bind(1, "💥");
+    stmt.bind(2, args.take());
     stmt.step();
   } else {
     silog::die("unknown command %s", cmd.begin());
