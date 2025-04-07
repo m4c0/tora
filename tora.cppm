@@ -1,5 +1,5 @@
 module;
-#pragma leco add_impl sqlite3
+#pragma leco add_impl sqlite_wrap
 #include "sqlite3.h"
 
 export module tora;
