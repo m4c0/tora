@@ -44,11 +44,21 @@ namespace tora {
     void bind(unsigned i, int n) { check(sqlite3_bind_int(*m_stmt, i, n), "failed to bind parameter"); }
     void bind64(unsigned i, long long n) { check(sqlite3_bind_int64(*m_stmt, i, n), "failed to bind parameter"); }
 
+    void bind_blob(unsigned i, jute::view str) {
+      check(sqlite3_bind_blob(*m_stmt, i, str.begin(), str.size(), SQLITE_TRANSIENT), "failed to bind parameter");
+    }
+
+    auto column_blob(unsigned i) {
+      auto t = reinterpret_cast<const char *>(sqlite3_column_blob(*m_stmt, i));
+      unsigned sz = sqlite3_column_bytes(*m_stmt, i);
+      return t ? jute::view { t, sz } : jute::view {};
+    }
     auto column_int(unsigned i) { return sqlite3_column_int(*m_stmt, i); }
     auto column_text(unsigned i) { return sqlite3_column_text(*m_stmt, i); }
     auto column_view(unsigned i) {
       auto t = reinterpret_cast<const char *>(column_text(i));
-      return t ? jute::view::unsafe(t) : jute::view {};
+      unsigned sz = sqlite3_column_bytes(*m_stmt, i);
+      return t ? jute::view { t, sz } : jute::view {};
     }
   };
 
