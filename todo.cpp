@@ -19,6 +19,8 @@ import tora;
 // Currently data is stored inside a file named "out/.tora" for lazyness
 // reasons
 int main(int argc, char ** argv) try {
+  tora::on_error = [](auto msg) { silog::die("%s", msg.cstr().begin()); };
+
   args args { argc, argv };
 
   tora::db db { (jute::view::unsafe(getenv("HOME")) + "/.todo").cstr().begin() };

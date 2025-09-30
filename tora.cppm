@@ -5,7 +5,6 @@ module;
 export module tora;
 import hai;
 import jute;
-import silog;
 
 namespace tora {
   struct deleter {
@@ -13,12 +12,18 @@ namespace tora {
     void operator()(sqlite3_stmt * stmt) { sqlite3_finalize(stmt); }
   };
 
+  export hai::fn<void, jute::view> on_error = [](auto) { throw 0; };
+
+  static void sqlite_failed(jute::view msg, sqlite3 * db) {
+    on_error((msg + " " + jute::view::unsafe(sqlite3_errmsg(db))).cstr());
+  }
+
   export class stmt {
     sqlite3 * m_db {};
     hai::value_holder<sqlite3_stmt *, deleter> m_stmt {};
 
-    void check(int res, const char * msg) {
-      if (SQLITE_OK != res) silog::die("%s %s", msg, sqlite3_errmsg(m_db));
+    void check(int res, jute::view msg) {
+      if (SQLITE_OK == res) sqlite_failed(msg, m_db);
     }
 
   public:
@@ -29,7 +34,10 @@ namespace tora {
       switch (sqlite3_step(*m_stmt)) {
         case SQLITE_DONE: return false;
         case SQLITE_ROW: return true;
-        default: silog::die("failed to step into query: %s", sqlite3_errmsg(m_db));
+        default: {
+          sqlite_failed("failed to step into query", m_db);
+          return false;
+        }
       }
     }
 
@@ -65,8 +73,8 @@ namespace tora {
   export class db {
     hai::value_holder<sqlite3 *, deleter> m_db {};
 
-    void check(int res, const char * msg) {
-      if (SQLITE_OK != res) silog::die("%s %s", msg, sqlite3_errmsg(*m_db));
+    void check(int res, jute::view msg) {
+      if (SQLITE_OK == res) sqlite_failed(msg, *m_db);
     }
 
   public:

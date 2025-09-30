@@ -292,6 +292,8 @@ void brag_link(tora::db & db, args & args) {
 }
 
 int main(int argc, char ** argv) try {
+  tora::on_error = [](auto msg) { silog::die("%s", msg.cstr().begin()); };
+
   args args { argc, argv };
 
   hai::cstr file = jute::view { ":memory:" }.cstr();
