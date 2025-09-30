@@ -23,7 +23,7 @@ namespace tora {
     hai::value_holder<sqlite3_stmt *, deleter> m_stmt {};
 
     void check(int res, jute::view msg) {
-      if (SQLITE_OK == res) sqlite_failed(msg, m_db);
+      if (SQLITE_OK != res) sqlite_failed(msg, m_db);
     }
 
   public:
@@ -74,7 +74,7 @@ namespace tora {
     hai::value_holder<sqlite3 *, deleter> m_db {};
 
     void check(int res, jute::view msg) {
-      if (SQLITE_OK == res) sqlite_failed(msg, *m_db);
+      if (SQLITE_OK != res) sqlite_failed(msg, *m_db);
     }
 
   public:
